@@ -21,6 +21,10 @@ const ratingSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    sentiment: {
+        type: String,
+        required: true
+    },
     date: {
         type: Date,
         default: Date.now

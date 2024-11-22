@@ -86,7 +86,7 @@ router.get('/getUsersByEvent/:selectedEvent', async (req, res) => {
         const attendanceRecords = await Attendance.find({ eventId });
 
         if (!attendanceRecords.length) {
-            return res.status(404).json({ message: 'No users found for this event' });
+            return res.json([]);
         }
 
         const userIds = attendanceRecords.map(record => record.userId);

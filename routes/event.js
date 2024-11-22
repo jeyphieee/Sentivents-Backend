@@ -34,16 +34,26 @@ const uploadOptions = multer({ storage: storage });
 
 //Get All Events
 router.get(`/`, async (req, res) => {
+    const { type } = req.query;
+
     try {
-        const events = await Event.find();
-        if (!events) {
-            return res.status(404).json({ success: false, message: 'No events found' });
+        let events;
+
+        if (type) {
+            events = await Event.find({ type: type });
+        } else {
+            events = await Event.find();
         }
+        if (events.length === 0) {
+            return res.status(200).send('no events found');
+        }
+
         res.status(200).json(events);
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
 
 //Create Events
 router.post(`/`, uploadOptions.array('images', 10), async (req, res) => { 
@@ -62,6 +72,7 @@ router.post(`/`, uploadOptions.array('images', 10), async (req, res) => {
         type: req.body.type,
         dateStart: req.body.dateStart,
         dateEnd: req.body.dateEnd,
+        location: req.body.location,
         images: images, 
         userId: req.body.userID,
     });
@@ -77,6 +88,45 @@ router.post(`/`, uploadOptions.array('images', 10), async (req, res) => {
     }
 });
 
+
+router.put(`/:id`, uploadOptions.array('images', 10), async (req, res) => { 
+    console.log('Register Request Body:', req.body);    
+
+
+    const event = await Event.findById(req.params.id);
+    console.log("laman", event._id)
+    if (!event) return res.status(400).send('Invalid Event!');
+
+    const files = req.files;
+    if (!files || files.length === 0) return res.status(400).send('No images in the request');
+
+    const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+
+    const images = files.map(file => `${basePath}${file.filename}`);
+
+    const updatedEvent = await Event.findByIdAndUpdate(
+        req.params.id,
+        {
+            name: req.body.name,
+            description: req.body.description,
+            type: req.body.type,
+            dateStart: req.body.dateStart,
+            dateEnd: req.body.dateEnd,
+            location: req.body.location,
+            images: images, 
+            userId: req.body.userID,
+        },
+        { new: true}
+    );
+   
+    if (!updatedEvent) return res.status(500).send('the event cannot be updated!');
+
+    res.json({
+        message: 'Event updated',
+        updatedEvent,
+      });
+      
+});
 router.get('/adminevents', async (req, res) => {
     try {
         const adminUsers = await User.find({ isAdmin: true });
@@ -174,14 +224,10 @@ router.post('/:id/feedback', async (req, res) => {
     if (!mongoose.isValidObjectId(eventId)) {
         return res.status(400).send('Invalid Event ID');
     }
-
-    // Find the event by its ID
     const event = await Event.findById(eventId);
     if (!event) {
         return res.status(404).send('Event not found');
     }
-
-    // Append new feedback to the feedback array
     const feedback = {
         user: req.body.user,
         comment: req.body.comment
@@ -190,8 +236,8 @@ router.post('/:id/feedback', async (req, res) => {
     event.feedback.push(feedback);
 
     try {
-        const updatedEvent = await event.save(); // Save the updated event with new feedback
-        res.status(200).json(updatedEvent); // Return the updated event data
+        const updatedEvent = await event.save();
+        res.status(200).json(updatedEvent);
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

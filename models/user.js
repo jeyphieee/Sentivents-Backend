@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        default: ''
+        default: '' 
     },
     department: {
         type: String,

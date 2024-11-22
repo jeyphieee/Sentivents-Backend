@@ -29,6 +29,10 @@ const eventSchema = mongoose.Schema({
         type: Date,
         required: true
     },
+    location: {
+        type: String,
+        required: true
+    },
     images: [{
         type: String
     }], 
