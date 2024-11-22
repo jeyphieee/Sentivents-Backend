@@ -33,6 +33,9 @@ app.use(`${api}questionnaires`, questionnaireRoutes);
 app.use(`${api}/events`, eventRoutes);
 app.use(`${api}/ratings`, ratingsRoutes);
 app.use(`${api}/attendance`, attendanceRoutes);
+app.get("/", (req, res) => {
+  res.send("Server is running");
+});
 
 
 
