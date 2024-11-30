@@ -175,33 +175,33 @@ router.get('/adminevents', async (req, res) => {
 // });
 
 //Event Update
-router.put('/:id', async (req, res) => {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-        return res.status(400).send('Invalid Event ID');
-    }
+// router.put('/:id', async (req, res) => {
+//     if (!mongoose.isValidObjectId(req.params.id)) {
+//         return res.status(400).send('Invalid Event ID');
+//     }
 
-    try {
-        const updatedEvent = await Event.findByIdAndUpdate(
-            req.params.id,
-            {
-                name: req.body.name,
-                description: req.body.description,
-                dateStart: req.body.dateStart,
-                dateEnd: req.body.dateEnd,
-                images: req.body.images
-            },
-            { new: true }
-        );
+//     try {
+//         const updatedEvent = await Event.findByIdAndUpdate(
+//             req.params.id,
+//             {
+//                 name: req.body.name,
+//                 description: req.body.description,
+//                 dateStart: req.body.dateStart,
+//                 dateEnd: req.body.dateEnd,
+//                 images: req.body.images
+//             },
+//             { new: true }
+//         );
 
-        if (!updatedEvent) {
-            return res.status(404).json({ success: false, message: 'Event not found' });
-        }
+//         if (!updatedEvent) {
+//             return res.status(404).json({ success: false, message: 'Event not found' });
+//         }
 
-        res.status(200).json(updatedEvent);
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
+//         res.status(200).json(updatedEvent);
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// });
 
 //Event Delete
 router.delete('/:id', (req, res)=>{
