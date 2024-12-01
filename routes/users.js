@@ -68,35 +68,6 @@ router.get('/email/:email', async (req, res) => {
     }
 });
  
-
-router.post('/', async (req, res) => {
-    const saltRounds = 10;
-    const salt = bcrypt.genSaltSync(saltRounds);
-
-    if (!req.body.password) {
-        return res.status(400).send('Password is required');
-    }
-
-    let password = await bcrypt.hashSync(req.body.password, salt)
-
-    let user = new User({
-        name: req.body.name,
-        surname: req.body.surname,
-        email: req.body.email,
-        passwordHash: password,
-        role: req.body.role,
-        department: req.body.department,
-        course: req.body.course,
-        section: req.body.section,
-    })
-    user = await user.save();
-
-    if (!user)
-        return res.status(400).send('the user cannot be created!')
-
-    res.send(user);
-})
-
 // router.put('/:id', async (req, res) => {
 
 //     const userExist = await User.findById(req.params.id);
@@ -271,6 +242,7 @@ router.post('/register', uploadOptions.single('image'), async (req, res) => {
         email: req.body.email,
         passwordHash: bcrypt.hashSync(req.body.password, 10),
         role: req.body.role,
+        organization: req.body.organization,
         department: req.body.department,
         image: `${basePath}${fileName}`,
         isAdmin: req.body.isAdmin,

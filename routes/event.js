@@ -70,6 +70,8 @@ router.post(`/`, uploadOptions.array('images', 10), async (req, res) => {
         name: req.body.name,
         description: req.body.description,
         type: req.body.type,
+        organization: req.body.organization,
+        department: req.body.department,
         dateStart: req.body.dateStart,
         dateEnd: req.body.dateEnd,
         location: req.body.location,

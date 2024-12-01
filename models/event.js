@@ -13,14 +13,14 @@ const eventSchema = mongoose.Schema({
         type: String,
         required: true
     }, 
-    // department: {
-    //     type: String,
-    //     required: true
-    // },
-    // organization: {
-    //     type: String,
-    //     required: true
-    // },
+    organization: {
+        type: String,
+        required: true
+    },
+    department: {
+        type: String,
+        required: true
+    },
     dateStart: {
         type: Date,
         required: true
@@ -41,26 +41,6 @@ const eventSchema = mongoose.Schema({
         ref: 'User',
         required: true
     },
-    // feedback: [
-    //     {
-    //         user: {
-    //             type: String,
-    //             required: true
-    //         },
-    //         rating: {
-    //             type: String,
-    //             required: true
-    //         },
-    //         comment: {
-    //             type: String,
-    //             required: true
-    //         },
-    //         date: {
-    //             type: Date,
-    //             default: Date.now
-    //         }
-    //     }
-    // ]
 });
 
 exports.Event = mongoose.model('Event', eventSchema);

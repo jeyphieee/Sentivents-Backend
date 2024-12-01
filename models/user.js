@@ -21,11 +21,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: '' 
     },
-    department: {
+    organization: {
         type: String,
         default: ''
     },
-    organization: {
+    department: {
         type: String,
         default: ''
     },
