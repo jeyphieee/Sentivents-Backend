@@ -147,8 +147,25 @@ router.put('/updateUsersAttendance/:selectedEvent', async (req, res) => {
     }
 });
 
+router.get('/hasAttendedCounts/:selectedEvent', async (req, res) => {
+    const selectedEvent = req.params.selectedEvent;
 
+    if (!mongoose.Types.ObjectId.isValid(selectedEvent)) {
+        return res.status(400).json({ message: 'Invalid eventId format' });
+    }
 
+    const eventId = new mongoose.Types.ObjectId(selectedEvent);
+
+    try {
+        const attendedCount = await Attendance.countDocuments({ eventId, hasAttended: true });
+        const notAttendedCount = await Attendance.countDocuments({ eventId, hasAttended: false });
+
+        res.status(200).json({ Present: attendedCount, Absent: notAttendedCount });
+    } catch (error) {
+        console.error('Error fetching attendance counts:', error);
+        res.status(500).json({ message: 'Error fetching attendance counts', error: error.message });
+    }
+});
 
 
 module.exports = router;
