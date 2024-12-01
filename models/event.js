@@ -41,6 +41,10 @@ const eventSchema = mongoose.Schema({
         ref: 'User',
         required: true
     },
+    isFeedbackSurveyOpen: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 exports.Event = mongoose.model('Event', eventSchema);
