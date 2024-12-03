@@ -134,6 +134,53 @@ const translateToEnglish = (feedback) => {
     }
   });
 
+
+  router.get('/:selectedEvent', async (req, res) => {
+    const { type } = req.query;
+    const selectedEvent = req.params.selectedEvent;
+
+    if (!mongoose.Types.ObjectId.isValid(selectedEvent)) {
+        return res.status(400).json({ message: 'Invalid eventId format' });
+    }
+
+    const eventId = new mongoose.Types.ObjectId(selectedEvent);
+
+    try {
+        if (type === 'counts') {
+            const positiveCount = await Rating.countDocuments({ eventId, sentiment: 'positive' });
+            const negativeCount = await Rating.countDocuments({ eventId, sentiment: 'negative' });
+            const neutralCount = await Rating.countDocuments({ eventId, sentiment: 'neutral' });
+
+            return res.status(200).json({ positive: positiveCount, negative: negativeCount, neutral: neutralCount });
+        } else {
+            const ratings = await Rating.find({ eventId })
+                .populate({
+                    path: 'userId',
+                    select: 'name surname',
+                })
+                .select('score feedback sentiment date userId'); 
+
+            const formattedRatings = ratings.length > 0 ? ratings.map(rating => ({
+                score: rating.score,
+                feedback: rating.feedback,
+                sentiment: rating.sentiment,
+                date: rating.date,
+                user: {
+                    id: rating.userId._id,
+                    name: `${rating.userId.name} ${rating.userId.surname}`
+                }
+            })) : [];
+
+            return res.status(200).json(formattedRatings);
+        }
+    } catch (error) {
+        console.error('Error processing request:', error.message);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+
+
 router.get('/:userId/:eventId', async (req, res) => {
     const { userId, eventId } = req.params;
 
@@ -153,25 +200,5 @@ router.get('/:userId/:eventId', async (req, res) => {
     }
 });
 
-router.get('/:selectedEvent', async (req, res) => {
-  const selectedEvent = req.params.selectedEvent;
-
-  if (!mongoose.Types.ObjectId.isValid(selectedEvent)) {
-      return res.status(400).json({ message: 'Invalid eventId format' });
-  }
-
-  const eventId = new mongoose.Types.ObjectId(selectedEvent);
-
-  try {
-      const positiveCount = await Rating.countDocuments({ eventId, sentiment: 'positive' });
-      const negativeCount = await Rating.countDocuments({ eventId, sentiment: 'negative' });
-      const neutralCount = await Rating.countDocuments({ eventId, sentiment: 'neutral' });
-
-      res.status(200).json({ positive: positiveCount, negative: negativeCount, neutral: neutralCount });
-  } catch (error) {
-      console.error('Error fetching sentiment counts:', error);
-      res.status(500).json({ message: 'Error fetching sentiment counts', error: error.message });
-  }
-});
 
 module.exports = router;
