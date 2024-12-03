@@ -102,6 +102,8 @@ router.get('/getUsersByEvent/:selectedEvent', async (req, res) => {
                 department: user.department,
                 section: user.section,
                 hasAttended: attendance ? attendance.hasAttended : false,
+                dateRegistered: attendance ? attendance.dateRegistered : null,
+
             };
         });
 
