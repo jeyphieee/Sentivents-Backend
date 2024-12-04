@@ -1,5 +1,21 @@
 const mongoose = require('mongoose');
 
+const commentSchema = mongoose.Schema({
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    text: {
+      type: String,
+      default: '' // Comment is optional
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  });
+
 const eventSchema = mongoose.Schema({
     name: {
         type: String,
@@ -45,6 +61,7 @@ const eventSchema = mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    comments: [commentSchema]
 });
 
 exports.Event = mongoose.model('Event', eventSchema);

@@ -27,6 +27,14 @@ function authJwt() {
                     url: /\/api\/v1\/attendance(.*)/,
                     methods: ['GET', 'POST', 'PUT', 'DELETE','OPTIONS']
                 },
+                {
+                    url: /\/api\/v1\/traits(.*)/,
+                    methods: ['GET', 'POST', 'PUT', 'DELETE','OPTIONS']
+                },
+                {
+                    url: /\/api\/v1\/questions(.*)/,
+                    methods: ['GET', 'POST', 'PUT', 'DELETE','OPTIONS']
+                },
                 { url: /\/public\/uploads(.*)/, methods: ['GET']},
                 { url: /\/sentivents-backend.onrender.com\/api\/v1\/public\/uploads(.*)/, methods: ['GET']},
 
