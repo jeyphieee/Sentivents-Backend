@@ -27,6 +27,8 @@ const ratingsRoutes = require("./routes/rating")
 const attendanceRoutes = require("./routes/attendance")
 const traitRoutes = require("./routes/trait")
 const questionRoutes = require("./routes/question")
+const responseRoutes = require("./routes/response")
+
 
 
 const api = process.env.API_URL;
@@ -38,6 +40,7 @@ app.use(`${api}/ratings`, ratingsRoutes);
 app.use(`${api}/attendance`, attendanceRoutes);
 app.use(`${api}/traits`, traitRoutes);
 app.use(`${api}/questions`, questionRoutes);
+app.use(`${api}/responses`, responseRoutes);
 app.get("/", (req, res) => {
   res.send("Server is running");
 });
