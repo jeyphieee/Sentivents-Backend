@@ -3,7 +3,6 @@ const router = express.Router();
 const { Question } = require('../models/question');
 const { Trait } = require('../models/trait');
 
-// Fetch all questions
 router.get('/', async (req, res) => {
   try {
     const questions = await Question.find().populate('traitId', 'trait');
@@ -13,7 +12,15 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Create a question
+router.get('/questions-with-traits', async (req, res) => {
+  try {
+      const questions = await Question.find().populate('traitId', 'trait');
+      res.status(200).json(questions);
+  } catch (error) {
+      res.status(500).json({ message: 'Error fetching questions', error });
+  }
+});
+
 router.post('/create-question', async (req, res) => {
   try {
     const { question, scale, traitId } = req.body;
@@ -45,7 +52,6 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Delete question
 router.delete('/:id', async (req, res) => {
   try {
     const deletedQuestion = await Question.findByIdAndDelete(req.params.id);

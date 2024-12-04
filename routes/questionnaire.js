@@ -1,35 +1,39 @@
 const express = require('express');
 const router = express.Router();
-const Questionnaire = require('../models/questionnaire');
-// const authJwt  = require('../middleware/authJwt'); // Commenting out the JWT middleware
+const { Questionnaire } = require('../models/questionnaire');
 
-// Create a new questionnaire
-router.post('/', async (req, res) => { // Removed authJwt()
-    const { questionnaires } = req.body; // Expecting the entire questionnaires structure
 
-    const questionnaire = new Questionnaire({
-        questionnaires, // Save the entire array of questionnaires with traits and questions
-    });
+router.post('/create', async (req, res) => {
+    const { eventId, questions } = req.body;
+
+    if (!eventId || !questions || questions.length === 0) {
+        return res.status(400).json({ message: "Event ID and questions are required" });
+    }
 
     try {
-        await questionnaire.save();
-        res.status(201).json({ message: "Questionnaire created successfully", questionnaire });
+        const questionnaire = new Questionnaire({
+            eventId,
+            questions,
+        });
+
+        const savedQuestionnaire = await questionnaire.save();
+        res.status(201).json({ message: "Questionnaire created successfully", questionnaire: savedQuestionnaire });
     } catch (error) {
-        res.status(400).json({ message: "Error creating questionnaire", error });
+        console.error('Error creating questionnaire:', error);
+        res.status(500).json({ message: "Error creating questionnaire", error });
     }
 });
-// Get all questionnaires
-router.get('/', async (req, res) => { // Removed authJwt()
+
+router.get('/', async (req, res) => {
     try {
-        const questionnaires = await Questionnaire.find().populate('userId', 'name email'); // Optionally populate user info
+        const questionnaires = await Questionnaire.find().populate('userId', 'name email');
         res.status(200).json(questionnaires);
     } catch (error) {
         res.status(500).json({ message: "Error retrieving questionnaires", error });
     }
 });
 
-// Get a specific questionnaire by ID
-router.get('/:id', async (req, res) => { // Removed authJwt()
+router.get('/:id', async (req, res) => {
     try {
         const questionnaire = await Questionnaire.findById(req.params.id).populate('userId', 'name email');
 
@@ -43,5 +47,21 @@ router.get('/:id', async (req, res) => { // Removed authJwt()
     }
 });
 
-// Export the router
+router.get('/check-questionnaire/:eventId', async (req, res) => {
+    try {
+      const { eventId } = req.params;
+  
+      const existingQuestionnaire = await Questionnaire.findOne({ eventId });
+  
+      if (existingQuestionnaire) {
+        return res.status(200).json({ hasQuestionnaire: true });
+      } else {
+        return res.status(200).json({ hasQuestionnaire: false });
+      }
+    } catch (error) {
+      console.error('Error checking for questionnaire:', error);
+      return res.status(500).json({ message: 'Server error' });
+    }
+  });
+
 module.exports = router;

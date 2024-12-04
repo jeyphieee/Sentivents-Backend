@@ -32,7 +32,7 @@ const questionRoutes = require("./routes/question")
 const api = process.env.API_URL;
 
 app.use(`${api}/users`, usersRoutes);
-app.use(`${api}questionnaires`, questionnaireRoutes);
+app.use(`${api}/questionnaires`, questionnaireRoutes);
 app.use(`${api}/events`, eventRoutes);
 app.use(`${api}/ratings`, ratingsRoutes);
 app.use(`${api}/attendance`, attendanceRoutes);
