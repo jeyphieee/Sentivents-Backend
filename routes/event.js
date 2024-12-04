@@ -317,4 +317,39 @@ router.get('/:eventId', async (req, res) => {
 });
 
 
+//COMMENT
+router.post('/:eventId/comments', async (req, res) => {
+    const { text } = req.body;
+    const userId = req.body.userId; // Assuming you pass the user ID in the request body
+
+    if (!mongoose.isValidObjectId(req.params.eventId) || !mongoose.isValidObjectId(userId)) {
+        return res.status(400).send('Invalid Event or User ID');
+    }
+
+    try {
+        const event = await Event.findById(req.params.eventId);
+        if (!event) {
+            return res.status(404).send('Event not found');
+        }
+
+        event.comments.push({ user: userId, text });
+        await event.save();
+
+        res.status(201).json({ message: 'Comment added successfully', comments: event.comments });
+    } catch (error) {
+        res.status(500).json({ error: 'Error posting comment', details: error.message });
+    }
+});
+
+//Kunin ang comments
+router.get('/:eventId/comments', async (req, res) => {
+    try {
+        const event = await Event.findById(req.params.eventId).populate('comments.user', 'name'); // Populate user names
+        if (!event) return res.status(404).send('Event not found');
+        res.json(event.comments);
+    } catch (error) {
+        res.status(500).json({ error: 'Error retrieving comments', details: error.message });
+    }
+});
+
 module.exports=router;
