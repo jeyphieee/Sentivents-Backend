@@ -2,6 +2,8 @@ const { Trait } = require('../models/trait');
 const express = require('express');
 const router = express.Router();
 
+
+//Fetch all Traits
 router.get('/', async (req, res) => {
     try {
         const traitList = await Trait.find();
@@ -18,16 +20,15 @@ router.get('/', async (req, res) => {
     }
 });
 
+//Create Trait
 router.post('/create-trait', async (req, res) => {
     const { trait } = req.body;
 
-    // Check if trait is provided
     if (!trait) {
         return res.status(400).json({ message: 'Trait name is required' });
     }
 
     try {
-        // Create and save new trait
         const newTrait = new Trait({ trait });
         await newTrait.save();
 
@@ -60,6 +61,7 @@ router.put('/edit-trait/:id', async (req, res) => {
     }
   });
 
+// Delete Trait
 router.delete('/delete-trait/:id', async (req, res) => {
     const { id } = req.params;
   

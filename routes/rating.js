@@ -5,15 +5,15 @@ const mongoose = require('mongoose');
 const http = require("https");
 
 
-router.get(`/`, async (req, res) => {
-    const ratings = await Rating.find().populate('rating');
+  router.get(`/`, async (req, res) => {
+      const ratings = await Rating.find().populate('rating');
 
-    if (!ratings) {
-        res.status(500).json({ success: false })
-    }
-   
-    res.status(201).json(ratings)
-})
+      if (!ratings) {
+          res.status(500).json({ success: false })
+      }
+    
+      res.status(201).json(ratings)
+  })
 
 const translateToEnglish = (feedback) => {
     return new Promise((resolve, reject) => {
@@ -100,6 +100,7 @@ const translateToEnglish = (feedback) => {
     });
   };
   
+  // Create feedback
   router.post('/', async (req, res) => {
     try {
       const { eventId, userId, score, feedback } = req.body;
@@ -134,7 +135,7 @@ const translateToEnglish = (feedback) => {
     }
   });
 
-
+  // For Charts, count selected event's sentiments, sentiment datatable, and for the event's scores
   router.get('/:selectedEvent', async (req, res) => {
     const { type } = req.query;
     const selectedEvent = req.params.selectedEvent;
@@ -177,28 +178,26 @@ const translateToEnglish = (feedback) => {
         console.error('Error processing request:', error.message);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
-});
+  });
 
+  // Check if users has feedback for chosen event
+  router.get('/:userId/:eventId', async (req, res) => {
+      const { userId, eventId } = req.params;
 
+      try {
+          const rating = await Rating.findOne({ userId, eventId });
 
-router.get('/:userId/:eventId', async (req, res) => {
-    const { userId, eventId } = req.params;
-
-    try {
-        const rating = await Rating.findOne({ userId, eventId });
-
-        if (!rating) {
-            return res.status(200).json({
-                message: 'No feedback found from this user for this event.',
-            });
-        }
-        res.status(200).json(rating);
-        console.log(rating);
-    } catch (error) {
-        console.error('Error fetching rating:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
+          if (!rating) {
+              return res.status(200).json({
+                  message: 'No feedback found from this user for this event.',
+              });
+          }
+          res.status(200).json(rating);
+          console.log(rating);
+      } catch (error) {
+          console.error('Error fetching rating:', error);
+          res.status(500).json({ error: 'Internal Server Error' });
+      }
+  });
 
 module.exports = router;

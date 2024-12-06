@@ -56,16 +56,3 @@ userSchema.set('toJSON', {
 });
 
 exports.User = mongoose.model('User', userSchema);
-
-
-// {   "name": "",
-//     "email": "",
-//     "passwordHash": "password",
-//     "phone": "0999992123",
-//     "isAdmin": true,
-//     "street": "champaca st",
-//     "apartment": "champaca apartment",
-//     "zip": "1630",
-//     "city": "Taguig city",
-//     "country": "Philippines",
-// }

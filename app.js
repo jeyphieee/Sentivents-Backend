@@ -7,7 +7,6 @@ const authJwt = require('./helpers/jwt');
 const errorHandler = require('./helpers/error-handler');
 require("dotenv/config");
 
-
 app.use(cors());
 app.options("*", cors());
 
@@ -18,7 +17,6 @@ app.use(authJwt());
 app.use(errorHandler);
 app.use("/public/uploads", express.static(__dirname + "/public/uploads"));
 
-
 //Routes
 const usersRoutes = require("./routes/users");
 const eventRoutes = require("./routes/event")
@@ -28,8 +26,6 @@ const attendanceRoutes = require("./routes/attendance")
 const traitRoutes = require("./routes/trait")
 const questionRoutes = require("./routes/question")
 const responseRoutes = require("./routes/response")
-
-
 
 const api = process.env.API_URL;
 
@@ -44,8 +40,6 @@ app.use(`${api}/responses`, responseRoutes);
 app.get("/", (req, res) => {
   res.send("Server is running");
 });
-
-
 
 //Database
 mongoose

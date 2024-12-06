@@ -36,6 +36,7 @@ const storage = multer.diskStorage({
 
 const uploadOptions = multer({ storage: storage });
 
+// Get Users
 router.get(`/`, async (req, res) => {
     // const userList = await User.find();
     const userList = await User.find().select('-passwordHash');
@@ -46,6 +47,8 @@ router.get(`/`, async (req, res) => {
     }
     res.send(userList);
 }) 
+
+// Get Specific User (di ata to ginamit)
 router.get('/:id', async (req, res) => {
     const user = await User.findById(req.params.id).select('-passwordHash');
 
@@ -55,6 +58,7 @@ router.get('/:id', async (req, res) => {
     res.status(200).send(user);
 });  
 
+// Get Specific User Email (di ata to ginamit)
 router.get('/email/:email', async (req, res) => {
     try {
         const user = await User.findOne({ email: req.params.email }).select('name');
@@ -101,6 +105,7 @@ router.get('/email/:email', async (req, res) => {
 //     res.send(user);
 // })
 
+// Update User (di ata to ginamit)
 router.put('/update/:id', uploadOptions.single('image'), async (req, res) => {
     try {
         const userExist = await User.findById(req.params.id);
@@ -139,7 +144,7 @@ router.put('/update/:id', uploadOptions.single('image'), async (req, res) => {
     }
 });   
 
-
+// (di ata to ginamit)
 router.put('/:id', async (req, res) => {
     try {
         const userExist = await User.findById(req.params.id);
@@ -179,6 +184,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
+// Login User
 router.post('/login', async (req, res) => {
     console.log(req.body.email)
     const user = await User.findOne({ email: req.body.email })
@@ -226,7 +232,7 @@ router.post('/login', async (req, res) => {
 //     res.send(user);
 // })
 
-
+// Register User
 router.post('/register', uploadOptions.single('image'), async (req, res) => {
 
     console.log('Register Request Body:', req.body);
@@ -257,7 +263,7 @@ router.post('/register', uploadOptions.single('image'), async (req, res) => {
     res.send(user);
 })
 
-
+// Delete User (di ata to ginamit)
 router.delete('/:id', (req, res) => {
     User.findByIdAndRemove(req.params.id).then(user => {
         if (user) {
@@ -270,6 +276,7 @@ router.delete('/:id', (req, res) => {
     })
 })
 
+// (di ata to ginamit)
 router.get(`/get/count`, async (req, res) => {
     const userCount = await User.countDocuments((count) => count)
 
@@ -281,6 +288,7 @@ router.get(`/get/count`, async (req, res) => {
     });
 })
 
+// (di to ginamit)
 router.post('/google_login', async (req, res) => {
     try {
         const { tokenId } = req.body;
@@ -319,6 +327,7 @@ router.post('/google_login', async (req, res) => {
     }
 });
 
+// (di to ginamit)
 router.get('/image/:id', async (req, res) => {
     try {
         const user = await User.findById(req.params.id).select('image');

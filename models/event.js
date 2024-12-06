@@ -8,7 +8,7 @@ const commentSchema = mongoose.Schema({
     },
     text: {
       type: String,
-      default: '' // Comment is optional
+      default: ''
     },
     createdAt: {
       type: Date,

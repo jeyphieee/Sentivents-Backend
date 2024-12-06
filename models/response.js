@@ -2,30 +2,30 @@ const mongoose = require('mongoose');
 
 const responseSchema = new mongoose.Schema({
     questionnaireId: {
-        type: mongoose.Schema.Types.ObjectId, // Reference to the Questionnaire ID
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Questionnaire',
         required: true,
     },
     questions: [{
         questionId: {
-            type: mongoose.Schema.Types.ObjectId, // Reference to the Question ID
+            type: mongoose.Schema.Types.ObjectId,
             ref: 'Question',
             required: true,
         },
         rating: {
-            type: Number, // The rating given by the user
+            type: Number,
             required: true,
-            min: 1, // Assuming a scale minimum value of 1
-            max: 5, // Assuming a scale maximum value of 5
+            min: 1,
+            max: 5,
         }
     }],
     userId: {
-        type: mongoose.Schema.Types.ObjectId, // Optional: Reference to the User ID who answered
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
     },
     createdAt: {
         type: Date,
-        default: Date.now, // Automatically capture response creation time
+        default: Date.now,
     },
 });
 exports.Response = mongoose.model('Response', responseSchema);

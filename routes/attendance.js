@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { User } = require('../models/user');
-const { Rating } = require('../models/ratings');
-
 const { Attendance } = require('../models/attendance')
 const mongoose = require('mongoose');
 
+// Check if User Registered
 router.get('/check-registration', async (req, res) => {
     try {
         const { eventId, userId } = req.query;
@@ -34,7 +33,7 @@ router.get('/check-registration', async (req, res) => {
     }
 });
 
-
+// Register User on Event
 router.post('/', async (req, res) => {
     try {
         const { userId, eventId } = req.body;
@@ -58,7 +57,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-//get user's registered event
+// Get User's Registered Events
 router.get('/user/:userId/events', async (req, res) => {
     try {
         const { userId } = req.params;
@@ -78,6 +77,7 @@ router.get('/user/:userId/events', async (req, res) => {
     }
 });
 
+// Get Event's User Attendance
 router.get('/getUsersByEvent/:selectedEvent', async (req, res) => {
     try {
         const eventId = req.params.selectedEvent;
@@ -114,6 +114,7 @@ router.get('/getUsersByEvent/:selectedEvent', async (req, res) => {
     }
 });
 
+// Update User's Attendance Status
 router.put('/updateUsersAttendance/:selectedEvent', async (req, res) => {
    
     console.log("Received PUT request at /updateUsersAttendance");
@@ -149,6 +150,7 @@ router.put('/updateUsersAttendance/:selectedEvent', async (req, res) => {
     }
 });
 
+// Count Selected Event's Attendance Count
 router.get('/hasAttendedCounts/:selectedEvent', async (req, res) => {
     const selectedEvent = req.params.selectedEvent;
 

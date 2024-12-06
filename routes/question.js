@@ -3,6 +3,7 @@ const router = express.Router();
 const { Question } = require('../models/question');
 const { Trait } = require('../models/trait');
 
+// Fetch Questions
 router.get('/', async (req, res) => {
   try {
     const questions = await Question.find().populate('traitId', 'trait');
@@ -12,6 +13,7 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Fetch Questions for Creating Questionnaire
 router.get('/questions-with-traits', async (req, res) => {
   try {
       const questions = await Question.find().populate('traitId', 'trait');
@@ -21,6 +23,7 @@ router.get('/questions-with-traits', async (req, res) => {
   }
 });
 
+// Create Question
 router.post('/create-question', async (req, res) => {
   try {
     const { question, scale, traitId } = req.body;
@@ -37,6 +40,7 @@ router.post('/create-question', async (req, res) => {
   }
 });
 
+// Update Question
 router.put('/:id', async (req, res) => {
   try {
     const { question, scale, traitId } = req.body;
@@ -52,6 +56,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// Delete Question
 router.delete('/:id', async (req, res) => {
   try {
     const deletedQuestion = await Question.findByIdAndDelete(req.params.id);

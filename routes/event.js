@@ -1,6 +1,5 @@
 const express = require('express');
 const { Event } = require('../models/event');
-const { Attendance } = require('../models/attendance');
 const { User } = require('../models/user');
 const router = express.Router();
 const mongoose = require('mongoose');
@@ -31,8 +30,7 @@ const storage = multer.diskStorage({
 
 const uploadOptions = multer({ storage: storage });
 
-
-//Get All Events
+// Get All Events
 router.get(`/`, async (req, res) => {
     const { type } = req.query;
 
@@ -54,8 +52,7 @@ router.get(`/`, async (req, res) => {
     }
 });
 
-
-//Create Events
+// Create Events
 router.post(`/`, uploadOptions.array('images', 10), async (req, res) => { 
     console.log('Register Request Body:', req.body);    
 
@@ -90,7 +87,7 @@ router.post(`/`, uploadOptions.array('images', 10), async (req, res) => {
     }
 });
 
-
+// Update Event
 router.put(`/:id`, uploadOptions.array('images', 10), async (req, res) => { 
     console.log('Register Request Body:', req.body);    
 
@@ -129,6 +126,8 @@ router.put(`/:id`, uploadOptions.array('images', 10), async (req, res) => {
       });
       
 });
+
+// Get Admin's Events
 router.get('/adminevents', async (req, res) => {
     try {
         const adminUsers = await User.find({ isAdmin: true });
@@ -205,7 +204,9 @@ router.get('/adminevents', async (req, res) => {
 //     }
 // });
 
-//Event Delete
+
+
+// Delete Event
 router.delete('/:id', (req, res)=>{
     Event.findByIdAndRemove(req.params.id).then(event =>{
         if(event) {
@@ -219,7 +220,7 @@ router.delete('/:id', (req, res)=>{
 })
 
 
-//Event create feedback
+// Event create feedback (di ata to ginamit)
 router.post('/:id/feedback', async (req, res) => {
     const eventId = req.params.id;
 
@@ -245,6 +246,7 @@ router.post('/:id/feedback', async (req, res) => {
     }
 });
 
+// Create Feedback (di ata to ginamit)
 router.post('/feedback', async (req, res) => {
     try {
         const { userId, eventName, feedback, rating } = req.body;
@@ -257,6 +259,7 @@ router.post('/feedback', async (req, res) => {
     }
 }); 
 
+// (di to ginamit)
 // router.put('/gallery-images/:id', uploadOptions.array('images', 10), async (req, res) => {
 //     if (!mongoose.isValidObjectId(req.params.id)) {
 //         return res.status(400).send('Invalid Product Id');
@@ -284,6 +287,7 @@ router.post('/feedback', async (req, res) => {
 //     res.send(brand);
 // });
 
+// Open or Close Event's Questionnaire
 router.put('/toggle-feedback-survey/:eventId', async (req, res) => {
     try {
       const eventId = req.params.eventId;
@@ -303,6 +307,7 @@ router.put('/toggle-feedback-survey/:eventId', async (req, res) => {
     }
   });
 
+// Get Specific Event (di ata to ginamit)
 router.get('/:eventId', async (req, res) => {
     try {
         const eventId = req.params.eventId;
@@ -316,8 +321,7 @@ router.get('/:eventId', async (req, res) => {
     }
 });
 
-
-//COMMENT
+// Comment on
 router.post('/:eventId/comments', async (req, res) => {
     const { text } = req.body;
     const userId = req.body.userId; // Assuming you pass the user ID in the request body
@@ -341,7 +345,7 @@ router.post('/:eventId/comments', async (req, res) => {
     }
 });
 
-//Kunin ang comments
+// Kunin ang comments
 router.get('/:eventId/comments', async (req, res) => {
     try {
         const event = await Event.findById(req.params.eventId).populate('comments.user', 'name'); // Populate user names

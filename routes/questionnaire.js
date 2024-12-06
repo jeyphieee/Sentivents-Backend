@@ -5,6 +5,7 @@ const { Question } = require('../models/question');
 const { Trait } = require('../models/trait');
 const { Response } = require('../models/response');
 
+// Create Questionnaire
 router.post('/create', async (req, res) => {
     const { eventId, questions } = req.body;
 
@@ -26,6 +27,8 @@ router.post('/create', async (req, res) => {
     }
 });
 
+
+// Get Questionnaire
 router.get('/', async (req, res) => {
     try {
         const questionnaires = await Questionnaire.find().populate('userId', 'name email');
@@ -34,6 +37,8 @@ router.get('/', async (req, res) => {
         res.status(500).json({ message: "Error retrieving questionnaires", error });
     }
 });
+
+// Get Event's Behavioral Analysis Ratings
 router.get('/aggregated-ratings', async (req, res) => {
     try {
         const { eventId } = req.query;  
@@ -114,7 +119,7 @@ router.get('/aggregated-ratings', async (req, res) => {
     }
 });
 
-
+// Get Event's Questionnaire Questions
 router.get('/event/:eventId', async (req, res) => {
     try {
       const { eventId } = req.params;
@@ -129,21 +134,19 @@ router.get('/event/:eventId', async (req, res) => {
         return res.status(404).json({ message: 'Questionnaire not found' });
       }
   
-      // Count the number of responses
       const responseCount = await Response.countDocuments({ questionnaireId: questionnaire._id });
   
       res.status(200).json({
         questionnaireId: questionnaire._id, 
         questionnaire: questionnaire,
-        responseCount: responseCount, // Include the response count
+        responseCount: responseCount,
       });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
   
-
-
+// Checks if Event has Questionnaire, used on opening and closing the questionnaire
 router.get('/check-questionnaire/:eventId', async (req, res) => {
     try {
       const { eventId } = req.params;
