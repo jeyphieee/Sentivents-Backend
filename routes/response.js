@@ -4,6 +4,7 @@ const Response = require('../models/response');
 
 router.post('/', async (req, res) => {
     const { questions, userId, questionnaireId } = req.body;
+
     console.log("Received Questions:", questions);
 
     if (!questions || !Array.isArray(questions) || questions.length === 0) {
@@ -16,6 +17,7 @@ router.post('/', async (req, res) => {
 
     try {
         console.log("Received request body:", req.body);
+
         const allQuestions = questions.map(question => {
             if (!question.questionId || question.rating == null) {
                 throw new Error("Each question must have 'questionId' and 'rating'.");
@@ -25,14 +27,13 @@ router.post('/', async (req, res) => {
                 rating: question.rating,
             };
         });
-
-        const responseDocument = {
+        const responseDocument = new Response({
             questionnaireId,
             userId,           
             questions: allQuestions, 
-        };
+        });
 
-        const savedResponse = await Response.create(responseDocument);
+        const savedResponse = await responseDocument.save();
 
         res.status(201).json({ success: true, data: savedResponse });
     } catch (error) {
