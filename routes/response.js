@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Response = require('../models/response');
+const { Response } = require('../models/response');
 
 router.post('/', async (req, res) => {
     const { questions, userId, questionnaireId } = req.body;
