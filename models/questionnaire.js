@@ -10,7 +10,11 @@ const questionnaireSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Question',
         required: true
-    }]
+    }],
+    acceptingResponses: {
+        type: Boolean,
+        default: false
+    },
 }, { 
     timestamps: true
 }); 

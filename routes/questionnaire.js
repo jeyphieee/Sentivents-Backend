@@ -119,6 +119,25 @@ router.get('/aggregated-ratings', async (req, res) => {
     }
 });
 
+router.get('/:eventId', async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      
+      // Fetch the questionnaire for the specific event
+      const questionnaire = await Questionnaire.findOne({ eventId });
+  
+      // If no questionnaire is found for the event, return an error
+      if (!questionnaire) {
+        return res.status(404).json({ message: 'Questionnaire not found for this event' });
+      }
+  
+      // Return the acceptingResponses field
+      res.status(200).json({ acceptingResponses: questionnaire.acceptingResponses });
+    } catch (error) {
+      console.error('Error fetching questionnaire:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
 // Get Event's Questionnaire Questions
 router.get('/event/:eventId', async (req, res) => {
     try {
@@ -154,14 +173,46 @@ router.get('/check-questionnaire/:eventId', async (req, res) => {
       const existingQuestionnaire = await Questionnaire.findOne({ eventId });
   
       if (existingQuestionnaire) {
-        return res.status(200).json({ hasQuestionnaire: true });
+        return res.status(200).json({ hasQuestionnaire: true, acceptingResponses: existingQuestionnaire.acceptingResponses,
+        });
       } else {
-        return res.status(200).json({ hasQuestionnaire: false });
+        return res.status(200).json({ hasQuestionnaire: false,  acceptingResponses: existingQuestionnaire.acceptingResponses, });
       }
     } catch (error) {
       console.error('Error checking for questionnaire:', error);
       return res.status(500).json({ message: 'Server error' });
     }
   });
+
+
+// Route to update the acceptingResponses field for a specific questionnaire
+router.put('/accepting-responses/:eventId', async (req, res) => {
+    const { eventId } = req.params;
+    const { acceptingResponses } = req.body;
+  
+    if (typeof acceptingResponses !== 'boolean') {
+      return res.status(400).json({ message: "acceptingResponses must be a boolean value" });
+    }
+  
+    try {
+      const questionnaire = await Questionnaire.findOne({ eventId });
+  
+      if (!questionnaire) {
+        return res.status(404).json({ message: 'Questionnaire not found for this event' });
+      }
+  
+      questionnaire.acceptingResponses = acceptingResponses;
+      await questionnaire.save();
+  
+      res.status(200).json({
+        message: 'Accepting responses updated successfully',
+        acceptingResponses: questionnaire.acceptingResponses,
+      });
+    } catch (error) {
+      console.error('Error updating acceptingResponses:', error);
+      res.status(500).json({ message: 'Server error', error });
+    }
+  });
+  
 
 module.exports = router;

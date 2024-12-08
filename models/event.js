@@ -57,10 +57,6 @@ const eventSchema = mongoose.Schema({
         ref: 'User',
         required: true
     },
-    isFeedbackSurveyOpen: {
-        type: Boolean,
-        default: false,
-    },
     comments: [commentSchema]
 });
 
