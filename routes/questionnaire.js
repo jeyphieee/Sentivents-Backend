@@ -38,6 +38,21 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get('/:id', async (req, res) => {
+  try {
+    const questionnaireId = req.params.questionnaireId;
+    const questionnaire = await Questionnaire.findById(questionnaireId);
+    
+    if (!questionnaire) {
+      return res.status(404).json({ message: 'Questionnaire not found' });
+    }
+    
+    res.status(200).json(questionnaire);
+  } catch (error) {
+    console.error('Error fetching questionnaire:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 // Get Event's Behavioral Analysis Ratings
 router.get('/aggregated-ratings', async (req, res) => {
     try {
@@ -173,6 +188,7 @@ router.get('/check-questionnaire/:eventId', async (req, res) => {
       const existingQuestionnaire = await Questionnaire.findOne({ eventId });
   
       if (existingQuestionnaire) {
+       
         return res.status(200).json({ hasQuestionnaire: true, acceptingResponses: existingQuestionnaire.acceptingResponses,
         });
       } else {
