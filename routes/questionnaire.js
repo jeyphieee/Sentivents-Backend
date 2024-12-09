@@ -38,101 +38,103 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/:id', async (req, res) => {
-  try {
-    const questionnaireId = req.params.questionnaireId;
-    const questionnaire = await Questionnaire.findById(questionnaireId);
+// router.get('/:id', async (req, res) => {
+//   try {
+//     const questionnaireId = req.params.id;
+//     const questionnaire = await Questionnaire.findById(questionnaireId);
     
-    if (!questionnaire) {
-      return res.status(404).json({ message: 'Questionnaire not found' });
-    }
+//     // If no questionnaire is found, return an empty object or message, instead of 404 error
+//     if (!questionnaire) {
+//       return res.status(200).json({ message: 'No questionnaire found for the provided ID.' });
+//     }
     
-    res.status(200).json(questionnaire);
-  } catch (error) {
-    console.error('Error fetching questionnaire:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+//     res.status(200).json(questionnaire); // Return the questionnaire if found
+//   } catch (error) {
+//     console.error('Error fetching questionnaire:', error);
+//     res.status(500).json({ message: 'Server error' }); // General server error
+//   }
+// });
+
 // Get Event's Behavioral Analysis Ratings
 router.get('/aggregated-ratings', async (req, res) => {
-    try {
-        const { eventId } = req.query;  
+  try {
+      const { eventId } = req.query;
 
-        if (!eventId) {
-            return res.status(400).json({ message: "Event ID is required." });
-        }
+      if (!eventId) {
+          return res.status(400).json({ message: "Event ID is required." });
+      }
 
-        const questionnaires = await Questionnaire.find({ eventId });
-        console.log('Questionnaires for event:', questionnaires);
+      const questionnaires = await Questionnaire.find({ eventId });
+      console.log('Questionnaires for event:', questionnaires);
 
-        if (!questionnaires || questionnaires.length === 0) {
-            return res.status(200).json({ aggregatedRatings: [] });
-        }
+      if (!questionnaires || questionnaires.length === 0) {
+          return res.status(200).json({ aggregatedRatings: [] });
+      }
 
-        const questionnaireIds = questionnaires.map(q => q._id);
-        
-        const responses = await Response.find({ 'questionnaireId': { $in: questionnaireIds } })
-            .populate({
-                path: 'questions.questionId',
-                populate: { path: 'traitId' }
-            });
-        console.log('Responses with populated questionId and traitId:', responses);
+      const questionnaireIds = questionnaires.map(q => q._id);
 
-        if (!responses || responses.length === 0) {
-            return res.status(200).json({ aggregatedRatings: [] });
-        }
+      const responses = await Response.find({ 'questionnaireId': { $in: questionnaireIds } })
+          .populate({
+              path: 'questions.questionId',
+              populate: { path: 'traitId' }
+          });
+      console.log('Responses with populated questionId and traitId:', responses);
 
-        const traitRatings = {};
+      if (!responses || responses.length === 0) {
+          return res.status(200).json({ aggregatedRatings: [] });
+      }
 
-        responses.forEach((response) => {
-            if (!response.questions) {
-                console.error('Response has no questions:', response);
-                return;
-            }
+      const traitRatings = {};
 
-            const responseTraitScores = {};
+      responses.forEach((response) => {
+          if (!response.questions) {
+              console.error('Response has no questions:', response);
+              return;
+          }
 
-            response.questions.forEach((question) => {
-                const trait = question.questionId.traitId.trait;
-                const rating = question.rating;
+          const responseTraitScores = {};
 
-                if (!trait || typeof rating !== 'number') {
-                    console.error('Invalid question data:', question);
-                    return;
-                }
+          response.questions.forEach((question) => {
+              const trait = question.questionId.traitId.trait;
+              const rating = question.rating;
 
-                if (!responseTraitScores[trait]) {
-                    responseTraitScores[trait] = 0;
-                }
-                responseTraitScores[trait] += rating;
-            });
+              if (!trait || typeof rating !== 'number') {
+                  console.error('Invalid question data:', question);
+                  return;
+              }
 
-            Object.keys(responseTraitScores).forEach((trait) => {
-                if (!traitRatings[trait]) {
-                    traitRatings[trait] = { totalScore: 0, totalResponses: 0 };
-                }
+              if (!responseTraitScores[trait]) {
+                  responseTraitScores[trait] = 0;
+              }
+              responseTraitScores[trait] += rating;
+          });
 
-                traitRatings[trait].totalScore += responseTraitScores[trait];
-                traitRatings[trait].totalResponses += 1;
-            });
-        });
+          Object.keys(responseTraitScores).forEach((trait) => {
+              if (!traitRatings[trait]) {
+                  traitRatings[trait] = { totalScore: 0, totalResponses: 0 };
+              }
 
-        const aggregatedRatings = Object.keys(traitRatings).map((trait) => {
-            const { totalScore, totalResponses } = traitRatings[trait];
-            return {
-                trait,
-                averageRating: Math.round((totalScore / totalResponses) * 100) / 100,
-                totalResponses,
-            };
-        });
-        
+              traitRatings[trait].totalScore += responseTraitScores[trait];
+              traitRatings[trait].totalResponses += 1;
+          });
+      });
 
-        res.status(200).json({ aggregatedRatings });
-    } catch (error) {
-        console.error('Error in /aggregated-ratings:', error);
-        res.status(500).json({ message: "Server error", error });
-    }
+      const aggregatedRatings = Object.keys(traitRatings).map((trait) => {
+          const { totalScore, totalResponses } = traitRatings[trait];
+          return {
+              trait,
+              averageRating: Math.round((totalScore / totalResponses) * 100) / 100,
+              totalResponses,
+          };
+      });
+
+      res.status(200).json({ aggregatedRatings });
+  } catch (error) {
+      console.error('Error in /aggregated-ratings:', error);
+      res.status(500).json({ message: "Server error", error: error.message });
+  }
 });
+
 
 router.get('/:eventId', async (req, res) => {
     try {
@@ -182,23 +184,27 @@ router.get('/event/:eventId', async (req, res) => {
   
 // Checks if Event has Questionnaire, used on opening and closing the questionnaire
 router.get('/check-questionnaire/:eventId', async (req, res) => {
-    try {
+  try {
       const { eventId } = req.params;
-  
+
       const existingQuestionnaire = await Questionnaire.findOne({ eventId });
-  
+
       if (existingQuestionnaire) {
-       
-        return res.status(200).json({ hasQuestionnaire: true, acceptingResponses: existingQuestionnaire.acceptingResponses,
-        });
+          return res.status(200).json({ 
+              hasQuestionnaire: true, 
+              acceptingResponses: existingQuestionnaire.acceptingResponses,
+          });
       } else {
-        return res.status(200).json({ hasQuestionnaire: false,  acceptingResponses: existingQuestionnaire.acceptingResponses, });
+          return res.status(200).json({ 
+              hasQuestionnaire: false, 
+              acceptingResponses: false,
+          });
       }
-    } catch (error) {
+  } catch (error) {
       console.error('Error checking for questionnaire:', error);
       return res.status(500).json({ message: 'Server error' });
-    }
-  });
+  }
+});
 
 
 // Route to update the acceptingResponses field for a specific questionnaire
