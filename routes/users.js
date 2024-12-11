@@ -58,6 +58,22 @@ router.get('/:id', async (req, res) => {
     res.status(200).send(user);
 });  
 
+// for behavioral analysis chart picker
+router.get('/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const user = await User.findById(userId).select('name surname');
+      if (user) {
+        res.status(200).json(user);
+      } else {
+        res.status(404).json({ message: 'User not found' });
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
 // Get Specific User Email (di ata to ginamit)
 router.get('/email/:email', async (req, res) => {
     try {

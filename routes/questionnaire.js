@@ -4,6 +4,7 @@ const { Questionnaire } = require('../models/questionnaire');
 const { Question } = require('../models/question');
 const { Trait } = require('../models/trait');
 const { Response } = require('../models/response');
+const { User } = require('../models/user'); // Import the User model
 
 // Create Questionnaire
 router.post('/create', async (req, res) => {
@@ -56,82 +57,86 @@ router.get('/', async (req, res) => {
 // });
 
 // Get Event's Behavioral Analysis Ratings
+
 router.get('/aggregated-ratings', async (req, res) => {
   try {
-      const { eventId } = req.query;
+    const { eventId, userId } = req.query;
 
-      if (!eventId) {
-          return res.status(400).json({ message: "Event ID is required." });
-      }
+    if (!eventId) {
+      return res.status(400).json({ message: "Event ID is required." });
+    }
+    const questionnaires = await Questionnaire.find({ eventId });
+    if (!questionnaires || questionnaires.length === 0) {
+      return res.status(200).json({ aggregatedRatings: [], users: [] });
+    }
 
-      const questionnaires = await Questionnaire.find({ eventId });
-      console.log('Questionnaires for event:', questionnaires);
+    const questionnaireIds = questionnaires.map(q => q._id);
 
-      if (!questionnaires || questionnaires.length === 0) {
-          return res.status(200).json({ aggregatedRatings: [] });
-      }
+    const responses = await Response.find({ 'questionnaireId': { $in: questionnaireIds } })
+      .populate({
+        path: 'questions.questionId',
+        populate: { path: 'traitId' },
+      });
 
-      const questionnaireIds = questionnaires.map(q => q._id);
+    const users = await Response.find({ 'questionnaireId': { $in: questionnaireIds } })
+      .distinct('userId');
 
-      const responses = await Response.find({ 'questionnaireId': { $in: questionnaireIds } })
-          .populate({
-              path: 'questions.questionId',
-              populate: { path: 'traitId' }
-          });
-      console.log('Responses with populated questionId and traitId:', responses);
+    let userInfo = null;
+    if (userId) {
+      userInfo = await User.findById(userId).select('name surname email role organization department course section image');
+    }
 
-      if (!responses || responses.length === 0) {
-          return res.status(200).json({ aggregatedRatings: [] });
-      }
+    if (!responses || responses.length === 0) {
+      return res.status(200).json({ aggregatedRatings: [], users, userInfo });
+    }
 
-      const traitRatings = {};
+    const traitRatings = {};
+    responses
+      .filter(response => !userId || response.userId.toString() === userId.toString())  // If no userId, return ratings for all users
+      .forEach((response) => {
+        if (!response.questions) {
+          return;
+        }
 
-      responses.forEach((response) => {
-          if (!response.questions) {
-              console.error('Response has no questions:', response);
-              return;
+        const responseTraitScores = {};
+        response.questions.forEach((question) => {
+          const trait = question.questionId.traitId.trait;
+          const rating = question.rating;
+
+          if (!trait || typeof rating !== 'number') {
+            return;
           }
 
-          const responseTraitScores = {};
+          if (!responseTraitScores[trait]) {
+            responseTraitScores[trait] = 0;
+          }
+          responseTraitScores[trait] += rating;
+        });
 
-          response.questions.forEach((question) => {
-              const trait = question.questionId.traitId.trait;
-              const rating = question.rating;
+        Object.keys(responseTraitScores).forEach((trait) => {
+          if (!traitRatings[trait]) {
+            traitRatings[trait] = { totalScore: 0, totalResponses: 0 };
+          }
 
-              if (!trait || typeof rating !== 'number') {
-                  console.error('Invalid question data:', question);
-                  return;
-              }
-
-              if (!responseTraitScores[trait]) {
-                  responseTraitScores[trait] = 0;
-              }
-              responseTraitScores[trait] += rating;
-          });
-
-          Object.keys(responseTraitScores).forEach((trait) => {
-              if (!traitRatings[trait]) {
-                  traitRatings[trait] = { totalScore: 0, totalResponses: 0 };
-              }
-
-              traitRatings[trait].totalScore += responseTraitScores[trait];
-              traitRatings[trait].totalResponses += 1;
-          });
+          traitRatings[trait].totalScore += responseTraitScores[trait];
+          traitRatings[trait].totalResponses += 1;
+        });
       });
 
-      const aggregatedRatings = Object.keys(traitRatings).map((trait) => {
-          const { totalScore, totalResponses } = traitRatings[trait];
-          return {
-              trait,
-              averageRating: Math.round((totalScore / totalResponses) * 100) / 100,
-              totalResponses,
-          };
-      });
+    const aggregatedRatings = Object.keys(traitRatings).map((trait) => {
+      const { totalScore, totalResponses } = traitRatings[trait];
+      return {
+        trait,
+        averageRating: Math.round((totalScore / totalResponses) * 100) / 100,
+        totalResponses,
+      };
+    });
 
-      res.status(200).json({ aggregatedRatings });
+    res.status(200).json({ aggregatedRatings, users, userInfo });
+
   } catch (error) {
-      console.error('Error in /aggregated-ratings:', error);
-      res.status(500).json({ message: "Server error", error: error.message });
+    console.error('Error in /aggregated-ratings:', error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
@@ -140,15 +145,12 @@ router.get('/:eventId', async (req, res) => {
     try {
       const { eventId } = req.params;
       
-      // Fetch the questionnaire for the specific event
       const questionnaire = await Questionnaire.findOne({ eventId });
   
-      // If no questionnaire is found for the event, return an error
       if (!questionnaire) {
         return res.status(404).json({ message: 'Questionnaire not found for this event' });
       }
   
-      // Return the acceptingResponses field
       res.status(200).json({ acceptingResponses: questionnaire.acceptingResponses });
     } catch (error) {
       console.error('Error fetching questionnaire:', error);
