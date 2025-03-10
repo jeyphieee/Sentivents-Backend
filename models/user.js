@@ -22,8 +22,9 @@ const userSchema = new mongoose.Schema({
         default: '' 
     },
     organization: {
-        type: String,
-        default: ''
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Organization',
+        required: true
     },
     department: {
         type: String,
@@ -45,6 +46,23 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    isOfficer: {
+        type: Boolean,
+        default: false,
+    },
+    isHead: {
+        type: Boolean,
+        default: false,
+    },
+    warningCount: {
+        type: Number,
+        default: 0
+    },
+    commentCooldown: {
+        type: Date,
+        default: null,
+    }
+    
 });
 
 userSchema.virtual('id').get(function () {

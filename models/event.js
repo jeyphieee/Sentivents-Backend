@@ -10,6 +10,10 @@ const commentSchema = mongoose.Schema({
       type: String,
       default: ''
     },
+    sentiment: {
+        type: String,
+        default: ''
+    },
     createdAt: {
       type: Date,
       default: Date.now
@@ -26,9 +30,10 @@ const eventSchema = mongoose.Schema({
         required: true
     },
     type: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Type',
         required: true
-    }, 
+    },
     organization: {
         type: String,
         required: true
@@ -56,6 +61,10 @@ const eventSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
+    },
+    hasQuestionnaire: { 
+        type: Boolean, 
+        default: false 
     },
     comments: [commentSchema]
 });

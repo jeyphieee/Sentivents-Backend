@@ -3,29 +3,124 @@ const router = express.Router();
 const { Questionnaire } = require('../models/questionnaire');
 const { Question } = require('../models/question');
 const { Trait } = require('../models/trait');
+const { Event } = require('../models/event');
 const { Response } = require('../models/response');
-const { User } = require('../models/user'); // Import the User model
+const { User } = require('../models/user');  // Import the User model
 
 // Create Questionnaire
 router.post('/create', async (req, res) => {
-    const { eventId, questions } = req.body;
+  const { eventId, selectedQuestions } = req.body;
 
-    if (!eventId || !questions || questions.length === 0) {
-        return res.status(400).json({ message: "Event ID and questions are required" });
-    }
+  if (!eventId || !selectedQuestions || selectedQuestions.length === 0) {
+    return res.status(400).json({ message: "Event ID and selected questions are required" });
+  }
 
+  try {
+    // Step 1: Create the Questionnaire
+    const questionnaire = new Questionnaire({
+      eventId,
+      questions: selectedQuestions,
+    });
+
+    const savedQuestionnaire = await questionnaire.save();
+
+    // Step 2: Update the selectedQuestion field for the chosen questions
     try {
-        const questionnaire = new Questionnaire({
-            eventId,
-            questions,
-        });
+      await Question.updateMany(
+        { _id: { $in: selectedQuestions } },
+        { $set: { selectedQuestion: true } }
+      );
 
-        const savedQuestionnaire = await questionnaire.save();
-        res.status(201).json({ message: "Questionnaire created successfully", questionnaire: savedQuestionnaire });
-    } catch (error) {
-        console.error('Error creating questionnaire:', error);
-        res.status(500).json({ message: "Error creating questionnaire", error });
+      // Step 3: Update the hasQuestionnaire field in the Event model
+      await Event.findByIdAndUpdate(
+        eventId,
+        { $set: { hasQuestionnaire: true } },
+        { new: true }
+      );
+
+      res.status(201).json({
+        message: "Questionnaire created successfully and event updated",
+        questionnaire: savedQuestionnaire,
+      });
+    } catch (updateError) {
+      console.error('Error updating selected questions:', updateError);
+
+      // Rollback: Delete the created Questionnaire
+      await Questionnaire.findByIdAndDelete(savedQuestionnaire._id);
+      res.status(500).json({ message: "Error updating selected questions", error: updateError });
     }
+  } catch (error) {
+    console.error('Error creating questionnaire:', error);
+    res.status(500).json({ message: "Error creating questionnaire", error });
+  }
+});
+
+// Randomize and Create Questionnaire
+router.post('/randomize-create', async (req, res) => {
+  const { eventId } = req.body;
+
+  if (!eventId) {
+    return res.status(400).json({ message: "Event ID is required" });
+  }
+
+  try {
+    // Step 1: Get all distinct traits from the database
+    const traits = await Question.distinct("traitId");
+
+    if (!traits || traits.length === 0) {
+      return res.status(404).json({ message: "No traits found" });
+    }
+
+    let selectedQuestions = [];
+
+    // Step 2: Loop through each trait and select 5 random questions
+    for (const traitId of traits) {
+      const questions = await Question.find({ traitId });
+
+      if (questions.length < 5) {
+        return res.status(400).json({
+          message: `Not enough questions for trait ${traitId}. Minimum 5 required.`,
+        });
+      }
+
+      // Shuffle and select exactly 5 questions
+      const shuffled = questions.sort(() => 0.5 - Math.random());
+      selectedQuestions.push(...shuffled.slice(0, 5));
+    }
+
+    // Extract just the question IDs
+    const selectedQuestionIds = selectedQuestions.map(q => q._id);
+
+    // Step 3: Create the Questionnaire
+    const questionnaire = new Questionnaire({
+      eventId,
+      questions: selectedQuestionIds,
+    });
+
+    const savedQuestionnaire = await questionnaire.save();
+
+    // Step 4: Update the selectedQuestion field for the chosen questions
+    await Question.updateMany(
+      { _id: { $in: selectedQuestionIds } },
+      { $set: { selectedQuestion: true } }
+    );
+
+    // Step 5: Update the hasQuestionnaire field in the Event model
+    await Event.findByIdAndUpdate(
+      eventId,
+      { $set: { hasQuestionnaire: true } },
+      { new: true }
+    );
+
+    res.status(201).json({
+      message: "Randomized questionnaire created successfully",
+      questionnaire: savedQuestionnaire,
+    });
+
+  } catch (error) {
+    console.error("Error creating randomized questionnaire:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
 });
 
 
@@ -57,7 +152,6 @@ router.get('/', async (req, res) => {
 // });
 
 // Get Event's Behavioral Analysis Ratings
-
 router.get('/aggregated-ratings', async (req, res) => {
   try {
     const { eventId, userId } = req.query;
@@ -118,7 +212,7 @@ router.get('/aggregated-ratings', async (req, res) => {
             traitRatings[trait] = { totalScore: 0, totalResponses: 0 };
           }
 
-          traitRatings[trait].totalScore += responseTraitScores[trait];
+          traitRatings[trait].totalScore += responseTraitScores[trait]/5;
           traitRatings[trait].totalResponses += 1;
         });
       });
@@ -139,7 +233,6 @@ router.get('/aggregated-ratings', async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
-
 
 router.get('/:eventId', async (req, res) => {
     try {
